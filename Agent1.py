@@ -8,7 +8,7 @@ import math
 
 
 class Agent1:
-    def _init_(self):
+    def __init__(self):
         self.generateGraph = GenerateGraph()
         self.discount = 0.75
         self.nonterminalReward = -0.001
