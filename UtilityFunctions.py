@@ -44,24 +44,7 @@ class Utility:
         return path, dist
 
     @staticmethod
-    def movePredator(agentPos, predPos, path):
-        # print(path[predPos][agentPos],"test path")
-        return path[predPos][agentPos]
-
-    @staticmethod
-    def movePredatorWithoutPath(agentPos, predPos, graph, dist):
-        neighbours = Utility.getNeighbours(graph, predPos)
-        neighbourDistanceMap = defaultdict(list)
-
-        for n in neighbours:
-            neighbourDistanceMap[dist[n][agentPos]].append(n)
-
-        minimumDistanceList = neighbourDistanceMap.get(min(neighbourDistanceMap), [])
-        print(minimumDistanceList,"test")
-        return random.choice(minimumDistanceList)
-
-    @staticmethod
-    def movePredator_dum(agentPos, predPos, graph, dist):
+    def movePredator(agentPos, predPos, graph, dist):
         move_list=[0,1]
         strategy_for_move=random.choices(move_list,weights=(40,60),k=1)
         if(strategy_for_move[0]):
