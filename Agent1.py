@@ -8,16 +8,36 @@ import math
 
 
 class Agent1:
-    def __init__(self):
+    def _init_(self):
         self.generateGraph = GenerateGraph()
         self.discount = 0.75
         self.nonterminalReward = -0.001
         self.error = 10 ** (-3)
 
-    def getUtility(self, utility, currState, action):
-        pass
+    def getUtility(self, graph, utility, currState, action):
+        u = self.nonterminalReward
+        preyVal = 0
+        predVal = 0
+        agentVal = 0
+        agentNeighbours = Utility.getNeighbours(graph, action[0])
+        for n in agentNeighbours:
+            if n != action[0]:
+                agentVal += (
+                    utility[n][action[1]][action[2]]
+                    * self.discount
+                    / (len(agentNeighbours) - 1)
+                )
+        preyNeighbours = Utility.getNeighbours(graph, action[1])
+        for n in preyNeighbours:
+            preyVal += (
+                utility[action[0]][n][action[2]] * self.discount / len(preyNeighbours)
+            )
+        predNeighbours = Utility.getNeighbours(graph, action[2])
+        # for n in predNeighbours:
+        #    predVal += utility
+        return u + preyVal + predVal + agentVal
 
-    def valueIteration(self, agentPos, preyPos, predPos, graph, size=50):
+    def valueIteration(self, graph, agentPos, preyPos, predPos, size=50):
 
         utility = [[[0 for i in range(size)] for j in range(size)] for k in range(size)]
 
@@ -25,9 +45,10 @@ class Agent1:
             for j in range(size):
                 utility[i][j][predPos] = -1
                 utility[i][preyPos][j] = 1
-
+        a = 0
         while True:
-
+            print("Value iteration for", a)
+            a += 1
             error = 0
 
             nextUtility = [
@@ -58,6 +79,7 @@ class Agent1:
                                     nextVal = max(
                                         nextVal,
                                         self.getUtility(
+                                            graph,
                                             utility,
                                             (agent, prey, pred),
                                             (newAgent, newPrey, newPred),
@@ -92,8 +114,7 @@ class Agent1:
         visualize=False,
     ):
 
-        utility = self.valueIteration(agentPos, preyPos, predPos, graph, size)
-
+        utility = self.valueIteration(graph, agentPos, preyPos, predPos, size)
         while runs > 0:
 
             if agentPos == predPos:
