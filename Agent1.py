@@ -17,7 +17,7 @@ class Agent1:
     def getUtility(self, utility, currState, action):
         pass
 
-    def valueIteration(self, agentPos, preyPos, predPos, size=50):
+    def valueIteration(self, agentPos, preyPos, predPos, graph, size=50):
 
         utility = [[[0 for i in range(size)] for j in range(size)] for k in range(size)]
 
@@ -46,9 +46,9 @@ class Agent1:
                     for pred in range(size):
 
                         # Compute the utility for all the actions
-                        agentActions = Utility.getNeighbours(agent)
-                        preyActions = Utility.getNeighbours(prey)
-                        predActions = Utility.getNeighbours(pred)
+                        agentActions = Utility.getNeighbours(graph, agent)
+                        preyActions = Utility.getNeighbours(graph, prey)
+                        predActions = Utility.getNeighbours(graph, pred)
 
                         nextVal = -math.inf
                         for newAgent in agentActions:
@@ -92,7 +92,48 @@ class Agent1:
         visualize=False,
     ):
 
-        utility = self.valueIteration(agentPos, preyPos, predPos, size)
+        utility = self.valueIteration(agentPos, preyPos, predPos, graph, size)
+
+        while runs > 0:
+
+            if agentPos == predPos:
+                return False, 3, 100 - runs, agentPos, predPos, preyPos
+
+            if agentPos == preyPos:
+                return True, 0, 100 - runs, agentPos, predPos, preyPos
+
+            agentNeighbours = Utility.getNeighbours(agentPos)
+
+            maxValue = -math.inf
+            maxNeighbour = -1
+
+            for n in agentNeighbours:
+
+                val = utility[n][preyPos][predPos]
+
+                if val > maxValue:
+                    maxVale = val
+                    maxNeighbour = n
+
+            agentPos = maxNeighbour
+
+            if agentPos == predPos:
+                return False, 4, 100 - runs, agentPos, predPos, preyPos
+
+            # check prey
+            if agentPos == preyPos:
+                return True, 1, 100 - runs, agentPos, predPos, preyPos
+
+            preyPos = Utility.movePrey(preyPos, graph)
+
+            if agentPos == preyPos:
+                return True, 2, 100 - runs, agentPos, predPos, preyPos
+
+            predPos = Utility.movePredator(agentPos, predPos, graph, dist)
+
+            runs -= 1
+
+        return False, 5, 100, agentPos, predPos, preyPos
 
     def executeAgent(self, size):
 
