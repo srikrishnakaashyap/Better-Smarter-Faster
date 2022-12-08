@@ -9,14 +9,29 @@ import graph as g
 class Agent1:
     def __init__(self):
         self.generateGraph = GenerateGraph()
+        self.discount = 0.75
+        self.nonterminalReward = -0.001
+        self.error = 10 ** (-3)
 
-        self.T = 150
+    def computeUtility(self, agentPos, preyPos, predPos, size=50):
 
-    def computeUtility(self, preyPos, predPos):
-        pass
+        utility = [[[0 for i in range(size)] for j in range(size)] for k in range(size)]
+
+        while True:
+            pass
+
+        return utility
 
     def agent1(
-        self, graph, dist, agentPos, preyPos, predPos, runs=100, visualize=False
+        self,
+        graph,
+        dist,
+        agentPos,
+        preyPos,
+        predPos,
+        size=50,
+        runs=100,
+        visualize=False,
     ):
 
         while runs > 0:
@@ -79,7 +94,7 @@ class Agent1:
             predPos = 37
 
             result, line, steps, agentPos, predPos, preyPos = self.agent1(
-                graph, dist, agentPos, preyPos, predPos, 100, False
+                graph, dist, agentPos, preyPos, predPos, size, 100, False
             )
 
             print(result, agentPos, predPos, preyPos)
