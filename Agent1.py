@@ -4,6 +4,7 @@ import random
 from UtilityFunctions import Utility
 import time
 import graph as g
+import math
 
 
 class Agent1:
@@ -13,12 +14,69 @@ class Agent1:
         self.nonterminalReward = -0.001
         self.error = 10 ** (-3)
 
-    def computeUtility(self, agentPos, preyPos, predPos, size=50):
+    def getUtility(self, utility, currState, action):
+        pass
+
+    def valueIteration(self, agentPos, preyPos, predPos, size=50):
 
         utility = [[[0 for i in range(size)] for j in range(size)] for k in range(size)]
 
+        for i in range(size):
+            for j in range(size):
+                utility[i][j][predPos] = -1
+                utility[i][preyPos][j] = 1
+
         while True:
-            pass
+
+            error = 0
+
+            nextUtility = [
+                [[0 for i in range(size)] for j in range(size)] for k in range(size)
+            ]
+            for i in range(size):
+                for j in range(size):
+                    nextUtility[i][j][predPos] = -1
+                    nextUtility[i][preyPos][j] = 1
+
+            # Compute Next Utility
+
+            # For all the states
+            for agent in range(size):
+                for prey in range(size):
+                    for pred in range(size):
+
+                        # Compute the utility for all the actions
+                        agentActions = Utility.getNeighbours(agent)
+                        preyActions = Utility.getNeighbours(prey)
+                        predActions = Utility.getNeighbours(pred)
+
+                        nextVal = -math.inf
+                        for newAgent in agentActions:
+                            for newPrey in preyActions:
+                                for newPred in predActions:
+
+                                    nextVal = max(
+                                        nextVal,
+                                        self.getUtility(
+                                            utility,
+                                            (agent, prey, pred),
+                                            (newAgent, newPrey, newPred),
+                                        ),
+                                    )
+
+                        nextUtility[agent][prey][pred] = nextVal
+                        error = max(
+                            error,
+                            abs(
+                                utility[agent][prey][pred]
+                                - nextUtility[agent][prey][pred]
+                            ),
+                        )
+
+            utility = nextUtility
+
+            if error < self.error * (1 - self.discount) / self.discount:
+                break
 
         return utility
 
@@ -34,46 +92,7 @@ class Agent1:
         visualize=False,
     ):
 
-        while runs > 0:
-
-            print(agentPos, predPos, preyPos)
-
-            if visualize:
-                # wait for a second
-                Utility.visualizeGrid(graph, agentPos, predPos, preyPos)
-                # time.sleep(10)
-
-            # print(agentPos, preyPos, predPos)
-            if agentPos == predPos:
-                return False, 3, 100 - runs, agentPos, predPos, preyPos
-
-            if agentPos == preyPos:
-                return True, 0, 100 - runs, agentPos, predPos, preyPos
-
-            # move agent
-            agentPos = self.moveAgent(agentPos, preyPos, predPos, graph, dist)
-
-            # check pred
-            if agentPos == predPos:
-                return False, 4, 100 - runs, agentPos, predPos, preyPos
-
-            # check prey
-            if agentPos == preyPos:
-                return True, 1, 100 - runs, agentPos, predPos, preyPos
-
-            # move prey
-            preyPos = Utility.movePrey(preyPos, graph)
-
-            if agentPos == preyPos:
-                return True, 2, 100 - runs, agentPos, predPos, preyPos
-
-            # move predator
-            # predPos = Utility.movePredator(agentPos, predPos, path)
-            predPos = Utility.movePredator_dum(agentPos, predPos, graph, dist)
-
-            runs -= 1
-
-        return False, 5, 100, agentPos, predPos, preyPos
+        utility = self.valueIteration(agentPos, preyPos, predPos, size)
 
     def executeAgent(self, size):
 
