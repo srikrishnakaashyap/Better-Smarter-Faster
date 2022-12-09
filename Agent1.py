@@ -14,30 +14,33 @@ class Agent1:
         self.nonterminalReward = -0.001
         self.error = 10 ** (-3)
 
-    def getUtility(self, graph, utility, currState, action):
+    def getUtility(self, graph, dist, utility, currState, action):
         u = self.nonterminalReward
         preyVal = 0
         predVal = 0
-        agentVal = 0
+        agentVal = utility[action[0]][action[1]][action[2]]
         agentNeighbours = Utility.getNeighbours(graph, action[0])
-        for n in agentNeighbours:
-            if n != action[0]:
-                agentVal += (
-                    utility[n][action[1]][action[2]]
-                    * self.discount
-                    / (len(agentNeighbours) - 1)
-                )
+        # for n in agentNeighbours:
+        #     if n != action[0]:
+        #         agentVal += utility[n][action[1]][action[2]]*self.discount/(len(agentNeighbours)-1)
         preyNeighbours = Utility.getNeighbours(graph, action[1])
         for n in preyNeighbours:
-            preyVal += (
-                utility[action[0]][n][action[2]] * self.discount / len(preyNeighbours)
-            )
+            preyVal += utility[action[0]][n][action[2]] / len(preyNeighbours)
         predNeighbours = Utility.getNeighbours(graph, action[2])
-        # for n in predNeighbours:
-        #    predVal += utility
+        lessDist = []
+        moreDist = []
+        for n in predNeighbours:
+            if n != action[2]:
+                lessDist.append(n)
+            if n != action[2] and dist[n][action[0]] >= dist[action[2]][action[0]]:
+                moreDist.append(n)
+        for n in lessDist:
+            predVal += 0.4 * utility[action[0]][action[1]][n] / len(lessDist)
+        for n in moreDist:
+            predVal += 0.6 * utility[action[0]][action[1]][n] / len(moreDist)
         return u + preyVal + predVal + agentVal
 
-    def valueIteration(self, graph, agentPos, preyPos, predPos, size=50):
+    def valueIteration(self, graph, dist, agentPos, preyPos, predPos, size=50):
 
         utility = [[[0 for i in range(size)] for j in range(size)] for k in range(size)]
 
@@ -80,10 +83,12 @@ class Agent1:
                                         nextVal,
                                         self.getUtility(
                                             graph,
+                                            dist,
                                             utility,
                                             (agent, prey, pred),
                                             (newAgent, newPrey, newPred),
-                                        ),
+                                        )
+                                        * self.discount,
                                     )
 
                         nextUtility[agent][prey][pred] = nextVal
@@ -114,7 +119,7 @@ class Agent1:
         visualize=False,
     ):
 
-        utility = self.valueIteration(graph, agentPos, preyPos, predPos, size)
+        utility = self.valueIteration(graph, dist, agentPos, preyPos, predPos, size)
         while runs > 0:
 
             if agentPos == predPos:
