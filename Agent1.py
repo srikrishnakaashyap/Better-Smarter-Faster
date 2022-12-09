@@ -16,8 +16,8 @@ class Agent1:
 
     def getUtility(self, graph, dist, utility, currState, action):
         u = self.nonterminalReward
-        preyVal = 0
-        predVal = 0
+        preyVal = float("-inf")
+        predVal = float("-inf")
         agentVal = utility[action[0]][action[1]][action[2]]
         agentNeighbours = Utility.getNeighbours(graph, action[0])
         # for n in agentNeighbours:
@@ -26,19 +26,18 @@ class Agent1:
         preyNeighbours = Utility.getNeighbours(graph, action[1])
         for n in preyNeighbours:
             preyVal += utility[action[0]][n][action[2]] / len(preyNeighbours)
-        predNeighbours = Utility.getNeighbours(graph, action[2])
-        lessDist = []
-        moreDist = []
-        for n in predNeighbours:
-            if n != action[2]:
-                lessDist.append(n)
-            if n != action[2] and dist[n][action[0]] >= dist[action[2]][action[0]]:
-                moreDist.append(n)
-        for n in lessDist:
-            predVal += 0.4 * utility[action[0]][action[1]][n] / len(lessDist)
-        for n in moreDist:
-            predVal += 0.6 * utility[action[0]][action[1]][n] / len(moreDist)
-        return u + preyVal + predVal + agentVal
+        currPredNeighbours = Utility.getNeighbours(graph, currState[2])
+        for i in currPredNeighbours:
+            tempVal = 0.6 * utility[action[0]][action[1]][i]
+            for j in currPredNeighbours:
+                if i != j:
+                    tempVal += (
+                        utility[action[0]][action[1]][j]
+                        * 0.4
+                        / (len(currPredNeighbours) - 1)
+                    )
+            predVal = max(predVal, tempVal)
+        return u + agentVal + preyVal + predVal
 
     def valueIteration(self, graph, dist, agentPos, preyPos, predPos, size=50):
 
