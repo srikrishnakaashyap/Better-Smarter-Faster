@@ -69,6 +69,19 @@ class Agent1:
                         agentActions = Utility.getNeighbours(graph, agent)
                         preyActions = Utility.getNeighbours(graph, prey)
                         predActions = Utility.getNeighbours(graph, pred)
+                        for preyaction in preyActions:
+                            optimalagentdist = float("inf")
+                            optimalAgentAction = None
+                            for agentaction in agentActions:
+                                if dist[agentaction][preyaction] < optimalagentdist:
+                                    optimalagentdist = dist[agentaction][preyaction]
+                                    optimalAgentAction = agentaction
+                            optimalpreddist = float("inf")
+                            optimalPredAction = None
+                            for predaction in predActions:
+                                if dist[agentaction][predaction] < optimalpreddist:
+                                    optimalpreddist = dist[agentaction][predaction]
+                                    optimalPredAction = predaction
 
                         nextVal = -math.inf
 
