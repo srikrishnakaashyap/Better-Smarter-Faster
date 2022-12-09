@@ -15,7 +15,7 @@ class Agent1:
         self.nonterminalReward = -0.001
         self.error = 10 ** (-3)
 
-    def getUtility(self, graph, dist, utility, currState, action):
+    def getUtility(self, graph, dist, utility, currState, action, nextState):
         u = self.nonterminalReward
         preyVal = 0
         predVal = float("-inf")
@@ -71,7 +71,7 @@ class Agent1:
 
                         # Compute the utility for all the actions
                         agentActions = Utility.getNeighbours(graph, agent)
-                        preyActions = Utility.getNeighbours(graph, prey)
+                        preyActions = Utility.getNeighbours(graph, prey, True)
                         predActions = Utility.getNeighbours(graph, pred)
 
                         nextVal = -math.inf

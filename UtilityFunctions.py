@@ -69,14 +69,16 @@ class Utility:
             return random.choice(moves)
 
     @staticmethod
-    def getNeighbours(graph, start):
+    def getNeighbours(graph, start, include=False):
         neighbours = []
 
         for index, elem in enumerate(graph[start]):
             if elem == 1:
                 neighbours.append(index)
 
-        neighbours.append(start)
+        if include:
+
+            neighbours.append(start)
 
         return neighbours
 

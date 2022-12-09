@@ -13,7 +13,7 @@ class Agent1:
         self.generateGraph = GenerateGraph()
         self.discount = 0.75
         self.nonterminalReward = -0.001
-        self.error = 10 ** (-3)
+        self.error = 1e-22
 
     def getUtility(self, graph, dist, utility, currState, action):
         u = self.nonterminalReward
@@ -21,9 +21,6 @@ class Agent1:
         predVal = float("-inf")
         agentVal = utility[action[0]][action[1]][action[2]]
         agentNeighbours = Utility.getNeighbours(graph, action[0])
-        # for n in agentNeighbours:
-        #     if n != action[0]:
-        #         agentVal += utility[n][action[1]][action[2]]*self.discount/(len(agentNeighbours)-1)
         preyNeighbours = Utility.getNeighbours(graph, action[1])
         for n in preyNeighbours:
             preyVal += utility[action[0]][n][action[2]] / len(preyNeighbours)
@@ -38,7 +35,10 @@ class Agent1:
                         / (len(currPredNeighbours) - 1)
                     )
             predVal = max(predVal, tempVal)
-        return u + agentVal + preyVal + predVal
+        return (u + agentVal) * (u + preyVal) * (u + predVal)
+
+    def getProbability(self, graph, dist, utility, currState, action):
+        pass
 
     def valueIteration(self, graph, dist, agentPos, preyPos, predPos, size=50):
 
@@ -50,17 +50,11 @@ class Agent1:
                 utility[i][preyPos][j] = 1
         a = 0
         while True:
-            print("Value iteration for", a)
+
             a += 1
             error = 0
 
-            nextUtility = [
-                [[0 for i in range(size)] for j in range(size)] for k in range(size)
-            ]
-            for i in range(size):
-                for j in range(size):
-                    nextUtility[i][j][predPos] = -1
-                    nextUtility[i][preyPos][j] = 1
+            nextUtility = copy.deepcopy(utility)
 
             # Compute Next Utility
 
@@ -69,27 +63,14 @@ class Agent1:
                 for prey in range(size):
                     for pred in range(size):
 
+                        # For all the actions
+
                         # Compute the utility for all the actions
                         agentActions = Utility.getNeighbours(graph, agent)
                         preyActions = Utility.getNeighbours(graph, prey)
                         predActions = Utility.getNeighbours(graph, pred)
 
                         nextVal = -math.inf
-                        for newAgent in agentActions:
-                            for newPrey in preyActions:
-                                for newPred in predActions:
-
-                                    nextVal = max(
-                                        nextVal,
-                                        self.getUtility(
-                                            graph,
-                                            dist,
-                                            utility,
-                                            (agent, prey, pred),
-                                            (newAgent, newPrey, newPred),
-                                        )
-                                        * self.discount,
-                                    )
 
                         nextUtility[agent][prey][pred] = nextVal
                         error = max(
@@ -101,7 +82,12 @@ class Agent1:
                         )
 
             utility = nextUtility
-
+            print(
+                "Value iteration for",
+                a,
+                error,
+                self.error * (1 - self.discount) / self.discount,
+            )
             if error < self.error * (1 - self.discount) / self.discount:
                 break
 
@@ -120,44 +106,44 @@ class Agent1:
     ):
 
         utility = self.valueIteration(graph, dist, agentPos, preyPos, predPos, size)
-        while runs > 0:
+        # while runs > 0:
 
-            if agentPos == predPos:
-                return False, 3, 100 - runs, agentPos, predPos, preyPos
+        #     if agentPos == predPos:
+        #         return False, 3, 100 - runs, agentPos, predPos, preyPos
 
-            if agentPos == preyPos:
-                return True, 0, 100 - runs, agentPos, predPos, preyPos
+        #     if agentPos == preyPos:
+        #         return True, 0, 100 - runs, agentPos, predPos, preyPos
 
-            agentNeighbours = Utility.getNeighbours(agentPos)
+        #     agentNeighbours = Utility.getNeighbours(agentPos)
 
-            maxValue = -math.inf
-            maxNeighbour = -1
+        #     maxValue = -math.inf
+        #     maxNeighbour = -1
 
-            for n in agentNeighbours:
+        #     for n in agentNeighbours:
 
-                val = utility[n][preyPos][predPos]
+        #         val = utility[n][preyPos][predPos]
 
-                if val > maxValue:
-                    maxVale = val
-                    maxNeighbour = n
+        #         if val > maxValue:
+        #             maxVale = val
+        #             maxNeighbour = n
 
-            agentPos = maxNeighbour
+        #     agentPos = maxNeighbour
 
-            if agentPos == predPos:
-                return False, 4, 100 - runs, agentPos, predPos, preyPos
+        #     if agentPos == predPos:
+        #         return False, 4, 100 - runs, agentPos, predPos, preyPos
 
-            # check prey
-            if agentPos == preyPos:
-                return True, 1, 100 - runs, agentPos, predPos, preyPos
+        #     # check prey
+        #     if agentPos == preyPos:
+        #         return True, 1, 100 - runs, agentPos, predPos, preyPos
 
-            preyPos = Utility.movePrey(preyPos, graph)
+        #     preyPos = Utility.movePrey(preyPos, graph)
 
-            if agentPos == preyPos:
-                return True, 2, 100 - runs, agentPos, predPos, preyPos
+        #     if agentPos == preyPos:
+        #         return True, 2, 100 - runs, agentPos, predPos, preyPos
 
-            predPos = Utility.movePredator(agentPos, predPos, graph, dist)
+        #     predPos = Utility.movePredator(agentPos, predPos, graph, dist)
 
-            runs -= 1
+        #     runs -= 1
 
         return False, 5, 100, agentPos, predPos, preyPos
 
