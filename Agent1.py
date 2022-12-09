@@ -16,7 +16,7 @@ class Agent1:
 
     def getUtility(self, graph, dist, utility, currState, action):
         u = self.nonterminalReward
-        preyVal = float("-inf")
+        preyVal = 0
         predVal = float("-inf")
         agentVal = utility[action[0]][action[1]][action[2]]
         agentNeighbours = Utility.getNeighbours(graph, action[0])
