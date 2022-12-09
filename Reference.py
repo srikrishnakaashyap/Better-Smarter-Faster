@@ -99,6 +99,8 @@ printEnvironment(U)
 # Value iteration
 U = valueIteration(U)
 
+print(U)
+
 # Get the optimal policy from U and print it
 policy = getOptimalPolicy(U)
 print("The optimal policy is:\n")
