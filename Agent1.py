@@ -13,15 +13,12 @@ class Agent1:
     def __init__(self):
         self.generateGraph = GenerateGraph()
         self.discount = 0.95
-        self.nonterminalReward = -0.001
+        self.nonterminalReward = -1
         self.error = 1e-22
 
         self.utility = None
 
     def getProbability(self, graph, dist, degree, utility, currState, nextState):
-        """
-        Adding rewards for taking that particular action
-        """
         agentProbability = 1
         preyProbability = 1 / (degree[currState[1]] + 1)
         predNeighbours = Utility.getNeighbours(graph, currState[2])
@@ -43,11 +40,13 @@ class Agent1:
 
         utility = [[[0 for i in range(size)] for j in range(size)] for k in range(size)]
 
-        # for i in range(size):
-        #     for j in range(size):
-        #         # if i == j:
-        #         utility[i][i][j] = 10**6
-        #         utility[i][j][i] = -(10**6)
+        for i in range(size):
+            for j in range(size):
+                for k in range(size):
+                    # if i == j:
+                    utility[i][j][k] = dist[i][j]
+                    utility[i][i][j] = 10**6
+                    utility[i][j][i] = -(10**6)
         a = 0
         while iterations > 0:
 
@@ -112,7 +111,7 @@ class Agent1:
                             ),
                         )
 
-            utility = nextUtility
+            utility = copy.deepcopy(nextUtility)
             print(
                 "Value iteration for",
                 a,
@@ -139,7 +138,7 @@ class Agent1:
 
                     agentActions = Utility.getNeighbours(graph, agent)
                     preyActions = Utility.getNeighbours(graph, prey)
-                    predActions = Utility.getNeighbours(graph, pred)
+                    predActions = Utility.getNeighbours(graph, pred, False)
 
                     for newAgent in agentActions:
                         for newPrey in preyActions:
