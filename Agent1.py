@@ -110,24 +110,17 @@ class Agent1:
                                     else:
                                         reward = 0
 
-                                    nextVal = max(
-                                        nextVal,
-                                        reward
-                                        + (
-                                            self.getProbability(
+                                    nextVal = max(nextVal, reward+ self.getProbability(
                                                 graph,
                                                 dist,
                                                 degree,
                                                 utility,
                                                 (agent, prey, pred),
-                                                (newAgent, newPrey, newPred),
-                                            )
-                                            * utility[newAgent][newPrey][newPred]
-                                            * self.discount
-                                        ),
-                                    )
+                                                (newAgent, newPrey, newPred))*( utility[newAgent][newPrey][newPred]* self.discount))
+                        if abs(utility[agent][prey][pred]- nextUtility[agent][prey][pred])>self.discount:
+                            self.discount = abs(utility[agent][prey][pred]- nextUtility[agent][prey][pred])
 
-                        nextUtility[agent][prey][pred] = nextVal
+                        nextUtility[agent][prey][pred] =  max(nextVal, abs(utility[agent][prey][pred]- nextUtility[agent][prey][pred]))
                         error = max(
                             error,
                             abs(
