@@ -13,8 +13,8 @@ class Agent1:
     def __init__(self):
         self.generateGraph = GenerateGraph()
         self.discount = 0.95
-        self.nonterminalReward = -1
-        self.error = 1e-22
+        self.nonterminalReward = -0.1
+        self.error = 1e-30
 
         self.utility = None
 
@@ -42,16 +42,27 @@ class Agent1:
 
         for i in range(size):
             for j in range(size):
-                for k in range(size):
-                    # if i == j:
-                    utility[i][j][k] = dist[i][j]
-                    utility[i][i][j] = 10**6
-                    utility[i][j][i] = -(10**6)
+                # # if i == j:
+                # utility[i][j][k] = 1 / (1 + dist[i][j])
+                utility[i][i][j] = 1
+                utility[i][j][i] = -1
         a = 0
         while iterations > 0:
 
             a += 1
             error = 0
+
+            # nextUtility = [
+            #     [[0 for i in range(size)] for j in range(size)] for k in range(size)
+            # ]
+
+            # for i in range(size):
+            #     for j in range(size):
+            #         for k in range(size):
+            #             # # if i == j:
+            #             # utility[i][j][k] = 1 / (1 + dist[i][j])
+            #             nextUtility[i][i][k] = 1
+            #             nextUtility[k][j][k] = -1
 
             nextUtility = copy.deepcopy(utility)
 
@@ -62,11 +73,14 @@ class Agent1:
                 for prey in range(size):
                     for pred in range(size):
 
+                        if agent == prey or agent == pred:
+                            continue
+
                         # For all the actions
 
                         # Compute the utility for all the actions
                         agentActions = Utility.getNeighbours(graph, agent)
-                        preyActions = Utility.getNeighbours(graph, prey)
+                        preyActions = Utility.getNeighbours(graph, prey, include=True)
                         predActions = Utility.getNeighbours(graph, pred)
 
                         nextVal = -math.inf
@@ -92,11 +106,10 @@ class Agent1:
                                         ),
                                     )
 
-                        reward = 0
                         if pred == agent:
-                            reward = -(10**6)
+                            reward = -1
                         elif prey == agent:
-                            reward = 10**6
+                            reward = 1
                         else:
                             reward = self.nonterminalReward
 
@@ -134,11 +147,11 @@ class Agent1:
                 for pred in range(size):
 
                     maxAction = None
-                    maxUtility = -(10**6)
+                    maxUtility = -1
 
                     agentActions = Utility.getNeighbours(graph, agent)
-                    preyActions = Utility.getNeighbours(graph, prey)
-                    predActions = Utility.getNeighbours(graph, pred, False)
+                    preyActions = Utility.getNeighbours(graph, prey, include=True)
+                    predActions = Utility.getNeighbours(graph, pred)
 
                     for newAgent in agentActions:
                         for newPrey in preyActions:
@@ -157,9 +170,9 @@ class Agent1:
 
                                 reward = 0
                                 if newPred == newAgent:
-                                    reward = -(10**6)
+                                    reward = -1
                                 elif newPrey == newAgent:
-                                    reward = 10**6
+                                    reward = 1
                                 else:
                                     reward = self.nonterminalReward
 
@@ -197,7 +210,7 @@ class Agent1:
 
             # print(self.utility)
 
-        policy = self.getOptimalPolicy(self.utility, graph, dist, degree)
+        # policy = self.getOptimalPolicy(self.utility, graph, dist, degree)
 
         while runs > 0:
 
@@ -207,7 +220,20 @@ class Agent1:
             if agentPos == preyPos:
                 return True, 0, 100 - runs, agentPos, predPos, preyPos
 
-            agentPos = policy[agentPos][preyPos][predPos]
+            agentNeighbours = Utility.getNeighbours(graph, agentPos)
+
+            maxValue = -math.inf
+            maxNeighbour = -1
+
+            for n in agentNeighbours:
+
+                val = self.utility[n][preyPos][predPos]
+
+                if val > maxValue:
+                    maxValue = val
+                    maxNeighbour = n
+
+            agentPos = maxNeighbour
 
             if agentPos == predPos:
                 return False, 4, 100 - runs, agentPos, predPos, preyPos
