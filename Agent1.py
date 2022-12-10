@@ -6,6 +6,7 @@ import time
 import graph as g
 import math
 import copy
+import json
 
 
 class Agent1:
@@ -45,6 +46,9 @@ class Agent1:
         return (u + agentVal) * (u + preyVal) * (u + predVal)
 
     def getProbability(self, graph, dist, degree, utility, currState, nextState):
+        """
+        Adding rewards for taking that particular action
+        """
         agentProbability = 1
         preyProbability = 1 / (degree[currState[1]] + 1)
         predNeighbours = Utility.getNeighbours(graph, currState[2])
@@ -68,8 +72,9 @@ class Agent1:
 
         for i in range(size):
             for j in range(size):
-                utility[i][j][predPos] = -1
-                utility[i][preyPos][j] = 1
+                # if i == j:
+                utility[i][i][j] = 1
+                utility[i][j][i] = -1
         a = 0
         while iterations > 0:
 
@@ -91,19 +96,6 @@ class Agent1:
                         agentActions = Utility.getNeighbours(graph, agent)
                         preyActions = Utility.getNeighbours(graph, prey)
                         predActions = Utility.getNeighbours(graph, pred)
-                        # for preyaction in preyActions:
-                        #     optimalagentdist = float("inf")
-                        #     optimalAgentAction = None
-                        #     for agentaction in agentActions:
-                        #         if dist[agentaction][preyaction] < optimalagentdist:
-                        #             optimalagentdist = dist[agentaction][preyaction]
-                        #             optimalAgentAction = agentaction
-                        #     optimalpreddist = float("inf")
-                        #     optimalPredAction = None
-                        #     for predaction in predActions:
-                        #         if dist[agentaction][predaction] < optimalpreddist:
-                        #             optimalpreddist = dist[agentaction][predaction]
-                        #             optimalPredAction = predaction
 
                         nextVal = -math.inf
 
@@ -111,18 +103,28 @@ class Agent1:
                             for newPrey in preyActions:
                                 for newPred in predActions:
 
+                                    if newAgent == newPred:
+                                        reward = -1
+                                    elif newAgent == newPrey:
+                                        reward = 1
+                                    else:
+                                        reward = 0
+
                                     nextVal = max(
                                         nextVal,
-                                        self.discount
-                                        * self.getProbability(
-                                            graph,
-                                            dist,
-                                            degree,
-                                            utility,
-                                            (agent, prey, pred),
-                                            (newAgent, newPrey, newPred),
-                                        )
-                                        * utility[newAgent][newPrey][newPred],
+                                        reward
+                                        + (
+                                            self.getProbability(
+                                                graph,
+                                                dist,
+                                                degree,
+                                                utility,
+                                                (agent, prey, pred),
+                                                (newAgent, newPrey, newPred),
+                                            )
+                                            * utility[newAgent][newPrey][newPred]
+                                            * self.discount
+                                        ),
                                     )
 
                         nextUtility[agent][prey][pred] = nextVal
@@ -166,6 +168,12 @@ class Agent1:
             self.utility = self.valueIteration(
                 graph, dist, degree, agentPos, preyPos, predPos, size
             )
+
+            with open("test.txt", "w") as f:
+
+                f.write(json.dumps(self.utility))
+
+            print(self.utility)
 
         while runs > 0:
 
@@ -220,11 +228,11 @@ class Agent1:
         counter = 0
 
         stepsCount = 0
-        for _ in range(1):
+        for _ in range(100):
 
-            agentPos = 1
-            preyPos = 28
-            predPos = 37
+            agentPos = random.randint(0, 49)
+            preyPos = random.randint(0, 49)
+            predPos = random.randint(0, 49)
 
             result, line, steps, agentPos, predPos, preyPos = self.agent1(
                 graph, dist, degree, agentPos, preyPos, predPos, size, 100, False
