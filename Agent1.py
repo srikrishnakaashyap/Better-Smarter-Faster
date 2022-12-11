@@ -42,10 +42,11 @@ class Agent1:
 
         for i in range(size):
             for j in range(size):
-                # # if i == j:
-                # utility[i][j][k] = 1 / (1 + dist[i][j])
-                utility[i][i][j] = 1
-                utility[i][j][i] = -1
+                for k in range(size):
+                    # # if i == j:
+                    utility[i][j][k] = 1 / (1 + dist[i][j])
+                    utility[i][i][j] = 1
+                    utility[i][j][i] = -1
         a = 0
         while iterations > 0:
 
@@ -73,12 +74,14 @@ class Agent1:
                 for prey in range(size):
                     for pred in range(size):
 
-                        if agent == prey or agent == pred:
-                            continue
+                        # if agent == prey or agent == pred:
+                        #     continue
 
                         # For all the actions
 
                         # Compute the utility for all the actions
+                        agentActions = [0, 1]
+                        pre
                         agentActions = Utility.getNeighbours(graph, agent)
                         preyActions = Utility.getNeighbours(graph, prey, include=True)
                         predActions = Utility.getNeighbours(graph, pred)
@@ -257,19 +260,15 @@ class Agent1:
 
         # graph, path, dist, degree = self.generateGraph.generateGraph(size)
 
-        graph, dist, degree = (
-            g.getGraph(),
-            g.getDist(),
-            g.getDegree(),
-        )
+        graph, dist, degree = g.getGraph()
         counter = 0
 
         stepsCount = 0
         for _ in range(100):
 
-            agentPos = random.randint(0, 49)
-            preyPos = random.randint(0, 49)
-            predPos = random.randint(0, 49)
+            agentPos = random.randint(0, size - 1)
+            preyPos = random.randint(0, size - 1)
+            predPos = random.randint(0, size - 1)
 
             result, line, steps, agentPos, predPos, preyPos = self.agent1(
                 graph, dist, degree, agentPos, preyPos, predPos, size, 100, False
@@ -291,7 +290,7 @@ if __name__ == "__main__":
     stepsArray = []
     for _ in range(1):
 
-        result, steps = agent1.executeAgent(50)
+        result, steps = agent1.executeAgent(5)
         counter += result
         stepsArray.append(steps)
     print(counter, stepsArray)
