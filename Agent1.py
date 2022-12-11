@@ -12,11 +12,9 @@ import json
 class Agent1:
     def __init__(self):
         self.generateGraph = GenerateGraph()
-        
         self.discount = 0.75
         self.nonterminalReward = -0.001
         self.error = 1e-22
-
 
         self.utility = None
 
@@ -64,24 +62,11 @@ class Agent1:
 
         print(utility)
 
-
         a = 0
         while iterations > 0:
 
             a += 1
             error = 0
-
-            # nextUtility = [
-            #     [[0 for i in range(size)] for j in range(size)] for k in range(size)
-            # ]
-
-            # for i in range(size):
-            #     for j in range(size):
-            #         for k in range(size):
-            #             # # if i == j:
-            #             # utility[i][j][k] = 1 / (1 + dist[i][j])
-            #             nextUtility[i][i][k] = 1
-            #             nextUtility[k][j][k] = -1
 
             nextUtility = copy.deepcopy(utility)
 
@@ -92,16 +77,11 @@ class Agent1:
                 for prey in range(size):
                     for pred in range(size):
 
-                        # if agent == prey or agent == pred:
-                        #     continue
-
                         # For all the actions
                         nextVal = math.inf
                         # Compute the utility for all the actions
-                        agentActions = [0, 1]
-                        pre
                         agentActions = Utility.getNeighbours(graph, agent)
-
+                        su = 0
                         for newAgent in agentActions:
                             preyActions = Utility.getNeighbours(
                                 graph, prey, include=True
@@ -126,11 +106,11 @@ class Agent1:
 
                             nextVal = min(nextVal, s * self.discount)
 
+
                         if agent == pred:
                             reward = math.inf
                         elif agent == prey:
                             reward = 0
-
                         else:
                             reward = 1
 
@@ -182,6 +162,8 @@ class Agent1:
 
                 f.write(json.dumps(self.utility))
 
+            print(self.utility)
+
         while runs > 0:
 
             if agentPos == predPos:
@@ -192,17 +174,14 @@ class Agent1:
 
             agentNeighbours = Utility.getNeighbours(graph, agentPos)
 
-
             maxValue = math.inf
             maxNeighbour = 1
-
 
             for n in agentNeighbours:
 
                 val = self.utility[n][preyPos][predPos]
 
                 if val < maxValue:
-
                     maxValue = val
                     maxNeighbour = n
 
@@ -230,15 +209,19 @@ class Agent1:
 
         # graph, path, dist, degree = self.generateGraph.generateGraph(size)
 
-        graph, dist, degree = g.getGraph()
+        graph, dist, degree = (
+            g.getGraph(),
+            g.getDist(),
+            g.getDegree(),
+        )
         counter = 0
 
         stepsCount = 0
         for _ in range(100):
 
-            agentPos = random.randint(0, size - 1)
-            preyPos = random.randint(0, size - 1)
-            predPos = random.randint(0, size - 1)
+            agentPos = random.randint(0, 49)
+            preyPos = random.randint(0, 49)
+            predPos = random.randint(0, 49)
 
             result, line, steps, agentPos, predPos, preyPos = self.agent1(
                 graph, dist, degree, agentPos, preyPos, predPos, size, 100, False
@@ -260,7 +243,7 @@ if __name__ == "__main__":
     stepsArray = []
     for _ in range(1):
 
-        result, steps = agent1.executeAgent(5)
+        result, steps = agent1.executeAgent(50)
         counter += result
         stepsArray.append(steps)
     print(counter, stepsArray)
