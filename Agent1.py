@@ -14,7 +14,7 @@ class Agent1:
         self.generateGraph = GenerateGraph()
         self.discount = 0.75
         self.nonterminalReward = -0.001
-        self.error = 1e-22
+        self.error = 1e-15
 
         self.utility = None
 
@@ -67,6 +67,7 @@ class Agent1:
 
             a += 1
             error = 0
+            preverror = 0
 
             nextUtility = copy.deepcopy(utility)
 
@@ -164,7 +165,11 @@ class Agent1:
             if error < self.error * (1 - self.discount) / self.discount:
                 break
 
+            if preverror == error:
+                break
+
             iterations -= 1
+            preverror = error
 
         return utility
 
