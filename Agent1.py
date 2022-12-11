@@ -60,7 +60,7 @@ class Agent1:
                     for l in predNeighbours:
                         utility[l][j][k] = math.inf
 
-        print(utility)
+        # print(utility)
 
         a = 0
         while iterations > 0:
@@ -106,7 +106,6 @@ class Agent1:
 
                             nextVal = min(nextVal, s * self.discount)
 
-
                         if agent == pred:
                             reward = math.inf
                         elif agent == prey:
@@ -115,7 +114,10 @@ class Agent1:
                             reward = 1
 
                         nextUtility[agent][prey][pred] = reward + nextVal
-                        if utility[agent][prey][pred] == math.inf or nextUtility[agent][prey][pred] == math.inf:
+                        if (
+                            utility[agent][prey][pred] == math.inf
+                            or nextUtility[agent][prey][pred] == math.inf
+                        ):
                             continue
                         error = max(
                             error,
@@ -130,7 +132,7 @@ class Agent1:
                 a,
                 error,
                 self.error * (1 - self.discount) / self.discount,
-                utility
+                # utility,
             )
             if error < 10**-15:
                 break
@@ -219,9 +221,11 @@ class Agent1:
         stepsCount = 0
         for _ in range(100):
 
-            agentPos = random.randint(0, 49)
-            preyPos = random.randint(0, 49)
-            predPos = random.randint(0, 49)
+            agentPos = random.randint(0, size - 1)
+            preyPos = random.randint(0, size - 1)
+            predPos = random.randint(0, size - 1)
+            while predPos == agentPos:
+                predPos = random.randint(0, size - 1)
 
             result, line, steps, agentPos, predPos, preyPos = self.agent1(
                 graph, dist, degree, agentPos, preyPos, predPos, size, 100, False
