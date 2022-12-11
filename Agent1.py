@@ -24,7 +24,9 @@ class Agent1:
         """
         agentProbability = 1
         preyProbability = 1 / (degree[currState[1]] + 1)
+
         predNeighbours = Utility.getNeighbours(graph, currState[2])
+
         neighbourDistanceMap = defaultdict(list)
         for n in predNeighbours:
             neighbourDistanceMap[dist[n][nextState[0]]].append(n)
@@ -36,25 +38,27 @@ class Agent1:
         else:
             predProbability = 0.4 / (degree[currState[2]] + 1)
         # print(preyProbability, predProbability,"test")
-        return agentProbability * preyProbability * predProbability
+        return preyProbability * predProbability
 
     def valueIteration(
         self, graph, dist, degree, agentPos, preyPos, predPos, size=50, iterations=100
     ):
 
-        utility = [[[-1 for i in range(size)] for j in range(size)] for k in range(size)]
+        utility = [
+            [[-1 for i in range(size)] for j in range(size)] for k in range(size)
+        ]
 
         for i in range(size):
             for j in range(size):
                 for k in range(size):
 
-                # if i == j:
+                    # if i == j:
                     utility[i][j][k] = dist[i][j]
                     utility[i][i][j] = 0
                     utility[i][j][i] = math.inf
                     predNeighbours = Utility.getNeighbours(graph, k)
                     for l in predNeighbours:
-                        utility[l][j][k]=math.inf
+                        utility[l][j][k] = math.inf
 
         print(utility)
 
@@ -77,16 +81,59 @@ class Agent1:
                         nextVal = math.inf
                         # Compute the utility for all the actions
                         agentActions = Utility.getNeighbours(graph, agent)
-                        preyActions = Utility.getNeighbours(graph, prey,include=True)
-                        predActions = Utility.getNeighbours(graph, pred )
-                        su=0
+                        # preyActions = Utility.getNeighbours(graph, prey,include=True)
+                        # predActions = Utility.getNeighbours(graph, pred )
+                        su = 0
                         for newAgent in agentActions:
-                            for newPrey in preyActions:
-                                for newPred in predActions:
-                                    if(utility[newAgent][newPrey][newPred]==0):
+                            preyActions = Utility.getNeighbours(
+                                graph, prey, include=True
+                            )
+                            predActions = Utility.getNeighbours(graph, pred)
+
+                            s = 0
+                            for k in preyActions:
+                                for l in predActions:
+
+                                    if utility[newAgent][k][l] == math.inf:
                                         continue
-                                    # print(self.getProbability(graph,dist,degree,utility,(agent, prey, pred),(newAgent, newPrey, newPred)), "test",utility[newAgent][newPrey][newPred])
-                                    nextVal = min(nextVal,(self.getProbability(graph,dist,degree,utility,(agent, prey, pred),(newAgent, newPrey, newPred))* utility[newAgent][newPrey][newPred]* self.discount))
+
+                                    s += (
+                                        self.getProbability(
+                                            graph,
+                                            dist,
+                                            degree,
+                                            utility,
+                                            (agent, prey, pred),
+                                            (newAgent, k, l),
+                                        )
+                                        * utility[newAgent][k][l]
+                                    )
+
+                            nextVal = min(nextVal, s * self.discount)
+
+                            # (a',  p1, pred1) = 1/4 * P(pr) * utility[a'][p1][pred1]
+                            # (a', p1, pred2) =
+                            # (a', p1, pred3) =
+                            # for newPrey in preyActions:
+                            # for newPred in predActions:
+                            # if(utility[newAgent][newPrey][newPred]==0):
+                            #     continue
+                            # print(self.getProbability(graph,dist,degree,utility,(agent, prey, pred),(newAgent, newPrey, newPred)), "test",utility[newAgent][newPrey][newPred])
+                            # nextVal = min(
+                            #     nextVal,
+                            #     (
+                            #         self.getProbability(
+                            #             graph,
+                            #             dist,
+                            #             degree,
+                            #             utility,
+                            #             (agent, prey, pred),
+                            #             (newAgent, prey, pred),
+                            #         )
+                            #         # * utility[newAgent][newPrey][newPred]
+                            #         * self.discount
+                            #     ),
+                            # )
                         # print(nextVal,agent,prey,pred,"test")
 
                         if agent == pred:
@@ -96,10 +143,16 @@ class Agent1:
                         else:
                             reward = 1
 
-                        nextUtility[agent][prey][pred] = reward+nextVal
-                        if(utility[agent][prey][pred]==math.inf):
+                        nextUtility[agent][prey][pred] = reward + nextVal
+                        if utility[agent][prey][pred] == math.inf:
                             continue
-                        error = max(error,abs(utility[agent][prey][pred] - nextUtility[agent][prey][pred]))
+                        error = max(
+                            error,
+                            abs(
+                                utility[agent][prey][pred]
+                                - nextUtility[agent][prey][pred]
+                            ),
+                        )
             utility = copy.deepcopy(nextUtility)
             print(
                 "Value iteration for",
