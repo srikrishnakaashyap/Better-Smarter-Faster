@@ -12,41 +12,59 @@ import json
 class Agent1:
     def __init__(self):
         self.generateGraph = GenerateGraph()
-        self.discount = 0.95
-        self.nonterminalReward = -0.1
-        self.error = 1e-30
+        
+        self.discount = 0.75
+        self.nonterminalReward = -0.001
+        self.error = 1e-22
+
 
         self.utility = None
 
     def getProbability(self, graph, dist, degree, utility, currState, nextState):
+        """
+        Adding rewards for taking that particular action
+        """
         agentProbability = 1
         preyProbability = 1 / (degree[currState[1]] + 1)
+
         predNeighbours = Utility.getNeighbours(graph, currState[2])
+
         neighbourDistanceMap = defaultdict(list)
         for n in predNeighbours:
             neighbourDistanceMap[dist[n][nextState[0]]].append(n)
         minimumDistanceList = neighbourDistanceMap.get(min(neighbourDistanceMap), [])
         if nextState[2] in minimumDistanceList:
             predProbability = 0.6 / (len(minimumDistanceList)) + 0.4 / (
-                degree[currState[2]]
+                degree[currState[2]] + 1
             )
         else:
-            predProbability = 0.4 / (degree[currState[2]])
-        return agentProbability * preyProbability * predProbability
+            predProbability = 0.4 / (degree[currState[2]] + 1)
+        # print(preyProbability, predProbability,"test")
+        return preyProbability * predProbability
 
     def valueIteration(
         self, graph, dist, degree, agentPos, preyPos, predPos, size=50, iterations=100
     ):
 
-        utility = [[[0 for i in range(size)] for j in range(size)] for k in range(size)]
+        utility = [
+            [[-1 for i in range(size)] for j in range(size)] for k in range(size)
+        ]
 
         for i in range(size):
             for j in range(size):
                 for k in range(size):
-                    # # if i == j:
-                    utility[i][j][k] = 1 / (1 + dist[i][j])
-                    utility[i][i][j] = 1
-                    utility[i][j][i] = -1
+
+                    # if i == j:
+                    utility[i][j][k] = dist[i][j]
+                    utility[i][i][j] = 0
+                    utility[i][j][i] = math.inf
+                    predNeighbours = Utility.getNeighbours(graph, k)
+                    for l in predNeighbours:
+                        utility[l][j][k] = math.inf
+
+        print(utility)
+
+
         a = 0
         while iterations > 0:
 
@@ -78,47 +96,47 @@ class Agent1:
                         #     continue
 
                         # For all the actions
-
+                        nextVal = math.inf
                         # Compute the utility for all the actions
                         agentActions = [0, 1]
                         pre
                         agentActions = Utility.getNeighbours(graph, agent)
-                        preyActions = Utility.getNeighbours(graph, prey, include=True)
-                        predActions = Utility.getNeighbours(graph, pred)
-
-                        nextVal = -math.inf
-
-                        # Actions
 
                         for newAgent in agentActions:
-                            for newPrey in preyActions:
-                                for newPred in predActions:
+                            preyActions = Utility.getNeighbours(
+                                graph, prey, include=True
+                            )
+                            predActions = Utility.getNeighbours(graph, pred)
 
-                                    nextVal = max(
-                                        nextVal,
-                                        (
-                                            self.getProbability(
-                                                graph,
-                                                dist,
-                                                degree,
-                                                utility,
-                                                (agent, prey, pred),
-                                                (newAgent, newPrey, newPred),
-                                            )
-                                            * utility[newAgent][newPrey][newPred]
-                                        ),
+                            s = 0
+                            for k in preyActions:
+                                for l in predActions:
+
+                                    s += (
+                                        self.getProbability(
+                                            graph,
+                                            dist,
+                                            degree,
+                                            utility,
+                                            (agent, prey, pred),
+                                            (newAgent, k, l),
+                                        )
+                                        * utility[newAgent][k][l]
                                     )
 
-                        if pred == agent:
-                            reward = -1
-                        elif prey == agent:
-                            reward = 1
-                        else:
-                            reward = self.nonterminalReward
+                            nextVal = min(nextVal, s * self.discount)
 
-                        nextUtility[agent][prey][pred] = reward + (
-                            self.discount * nextVal
-                        )
+                        if agent == pred:
+                            reward = math.inf
+                        elif agent == prey:
+                            reward = 0
+
+                        else:
+                            reward = 1
+
+                        nextUtility[agent][prey][pred] = reward + nextVal
+                        if utility[agent][prey][pred] == math.inf or nextUtility[agent][prey][pred] == math.inf:
+                            continue
                         error = max(
                             error,
                             abs(
@@ -126,67 +144,20 @@ class Agent1:
                                 - nextUtility[agent][prey][pred]
                             ),
                         )
-
             utility = copy.deepcopy(nextUtility)
             print(
                 "Value iteration for",
                 a,
                 error,
                 self.error * (1 - self.discount) / self.discount,
+                utility
             )
-            if error < self.error * (1 - self.discount) / self.discount:
+            if error < 10**-15:
                 break
 
             iterations -= 1
 
         return utility
-
-    def getOptimalPolicy(self, utility, graph, dist, degree):
-        size = len(utility)
-        policy = [[[0 for i in range(size)] for j in range(size)] for k in range(size)]
-
-        for agent in range(size):
-            for prey in range(size):
-                for pred in range(size):
-
-                    maxAction = None
-                    maxUtility = -1
-
-                    agentActions = Utility.getNeighbours(graph, agent)
-                    preyActions = Utility.getNeighbours(graph, prey, include=True)
-                    predActions = Utility.getNeighbours(graph, pred)
-
-                    for newAgent in agentActions:
-                        for newPrey in preyActions:
-                            for newPred in predActions:
-                                v = (
-                                    self.getProbability(
-                                        graph,
-                                        dist,
-                                        degree,
-                                        utility,
-                                        (agent, prey, pred),
-                                        (newAgent, newPrey, newPred),
-                                    )
-                                    * utility[newAgent][newPrey][newPred]
-                                )
-
-                                reward = 0
-                                if newPred == newAgent:
-                                    reward = -1
-                                elif newPrey == newAgent:
-                                    reward = 1
-                                else:
-                                    reward = self.nonterminalReward
-
-                                u = reward + (self.discount * v)
-
-                                if u > maxUtility:
-                                    maxUtility, maxAction = u, newAgent
-
-                    policy[agent][prey][pred] = maxAction
-
-        return policy
 
     def agent1(
         self,
@@ -211,10 +182,6 @@ class Agent1:
 
                 f.write(json.dumps(self.utility))
 
-            # print(self.utility)
-
-        # policy = self.getOptimalPolicy(self.utility, graph, dist, degree)
-
         while runs > 0:
 
             if agentPos == predPos:
@@ -225,14 +192,17 @@ class Agent1:
 
             agentNeighbours = Utility.getNeighbours(graph, agentPos)
 
-            maxValue = -math.inf
-            maxNeighbour = -1
+
+            maxValue = math.inf
+            maxNeighbour = 1
+
 
             for n in agentNeighbours:
 
                 val = self.utility[n][preyPos][predPos]
 
-                if val > maxValue:
+                if val < maxValue:
+
                     maxValue = val
                     maxNeighbour = n
 
