@@ -38,7 +38,7 @@ class Agent1:
         self, graph, dist, degree, utility, currState, actions
     ):
         if actions[0] == 0:
-            agentNeighbours = Utility.getNeighbours(graph, currState[0])
+            agentNeighbours = Utility.getNeighbours(graph, currState[0], include=True)
             minimumDistanceMap = defaultdict(list)
             for n in agentNeighbours:
                 minimumDistanceMap[dist[n][currState[1]]].append(n)
@@ -125,11 +125,7 @@ class Agent1:
                         for agentAction in agentActions:
                             for preyAction in preyActions:
                                 for predAction in predActions:
-
-                                    nextVal = max(
-                                        nextVal,
-                                        (
-                                            self.computeUtilityAcrossActions(
+                                    computedutility = self.computeUtilityAcrossActions(
                                                 graph,
                                                 dist,
                                                 degree,
@@ -137,8 +133,11 @@ class Agent1:
                                                 (agent, prey, pred),
                                                 (agentAction, preyAction, predAction),
                                             )
-                                        ),
-                                    )
+                                    if predAction == 0:
+                                        computedutility*=0.6
+                                    else:
+                                        computedutility*=0.4
+                                    nextVal = max(nextVal, computedutility)
 
                         if pred == agent:
                             reward = -1
@@ -331,3 +330,4 @@ if __name__ == "__main__":
         counter += result
         stepsArray.append(steps)
     print(counter, stepsArray)
+    #print(100, [1])
