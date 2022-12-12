@@ -1,3 +1,5 @@
+import csv
+
 from GenerateGraph import GenerateGraph
 from collections import defaultdict
 import random
@@ -7,6 +9,8 @@ import graph as g
 import math
 import copy
 import json
+from copy import copy
+
 
 
 class Agent1:
@@ -99,6 +103,20 @@ class Agent1:
             predProbability = 0.4 / (degree[currState[2]] + 1)
         # print(preyProbability, predProbability,"test")
         return preyProbability * predProbability
+
+    def getUtilityFromFile(self):
+        utility = [[[-1 for i in range(50)] for j in range(50)] for k in range(50)]
+        with open("data.csv") as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=",")
+            line_count = 0
+            for row in csv_reader:
+                if line_count == 0:
+                    print(f'Column names are {", ".join(row)}')
+                    line_count += 1
+                else:
+                    utility[int(row[0])][int(row[1])][int(row[2])] = float(row[-1])
+                    line_count += 1
+        return utility
 
     def valueIteration(
         self, graph, dist, degree, agentPos, preyPos, predPos, size=50, iterations=100
@@ -216,9 +234,11 @@ class Agent1:
         self.numberOfSuccessfulScouts = 0
         if self.utility is None:
 
-            self.utility = self.valueIteration(
-                graph, dist, degree, agentPos, preyPos, predPos, size
-            )
+            # self.utility = self.valueIteration(
+            #     graph, dist, degree, agentPos, preyPos, predPos, size
+            # )
+
+            self.utility= self.getUtilityFromFile()
 
             with open("test.txt", "w") as f:
 
@@ -258,7 +278,7 @@ class Agent1:
             agentPos = maxNeighbour
 
             self.NormalizeBeliefArray(agentPos, preyPos, predPos, graph, dist, degree)
-
+            # print(self.beliefArray, "after normalize")
             if agentPos == predPos:
                 return False, 4, 100 - runs, agentPos, predPos, preyPos
 
@@ -296,7 +316,7 @@ class Agent1:
             predPos = random.randint(0, size - 1)
             while predPos == agentPos:
                 predPos = random.randint(0, size - 1)
-
+            self.beliefArray = [1 / (size) for i in range(size)]
             result, line, steps, agentPos, predPos, preyPos = self.agent1(
                 graph, dist, degree, agentPos, preyPos, predPos, size, 100, False
             )
