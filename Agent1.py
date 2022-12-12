@@ -106,7 +106,7 @@ class Agent1:
 
                             nextVal = min(nextVal, s * self.discount)
 
-                        if agent == pred:
+                        if agent == pred or abs(agent-pred)==1:
                             reward = math.inf
                         elif agent == prey:
                             reward = 0
