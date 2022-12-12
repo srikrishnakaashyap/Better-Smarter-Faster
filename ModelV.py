@@ -68,6 +68,17 @@ def tanh_prime(x):
     return 1 - np.tanh(x) ** 2
 
 
+def leaky_Relu(arr):
+
+    # print("ARR", arr)
+
+    return np.where(arr > 0, arr, arr * 0.01)
+
+
+def leaky_Relu_Derivative(arr):
+    return np.where(arr > 0, 1, 0.01)
+
+
 # loss function and its derivative
 def mse(y_true, y_pred):
     return np.mean(np.power(y_true - y_pred, 2))
@@ -119,10 +130,12 @@ class Network:
             for j in range(samples):
                 # forward propagation
                 output = x_train[j]
+                # print("OUTPUT", output)
                 for layer in self.layers:
                     output = layer.forward_propagation(output)
 
                 # compute loss (for display purpose only)
+                # print("Y_TRAIN", y_train[j])
                 err += self.loss(y_train[j], output)
 
                 # backward propagation
@@ -141,10 +154,10 @@ if __name__ == "__main__":
 
     # network
     net = Network()
-    net.add(FCLayer(4, 3))
-    net.add(ActivationLayer(tanh, tanh_prime))
+    net.add(FCLayer(2, 3))
+    net.add(ActivationLayer(leaky_Relu, leaky_Relu_Derivative))
     net.add(FCLayer(3, 1))
-    net.add(ActivationLayer(tanh, tanh_prime))
+    net.add(ActivationLayer(leaky_Relu, leaky_Relu_Derivative))
 
     # train
     net.use(mse, mse_prime)
