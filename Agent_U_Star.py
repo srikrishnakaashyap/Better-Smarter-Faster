@@ -2,7 +2,7 @@ from GenerateGraph import GenerateGraph
 from collections import defaultdict
 import random
 from UtilityFunctions import Utility
-import time
+import csv
 import graph as g
 import math
 import copy
@@ -17,6 +17,20 @@ class Agent1:
         self.error = 1e-22
 
         self.utility = None
+
+    def getUtilityFromFile(self):
+        utility = [[[-1 for i in range(50)] for j in range(50)] for k in range(50)]
+        with open("data.csv") as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=",")
+            line_count = 0
+            for row in csv_reader:
+                if line_count == 0:
+                    print(f'Column names are {", ".join(row)}')
+                    line_count += 1
+                else:
+                    utility[int(row[0])][int(row[1])][int(row[2])] = float(row[-1])
+                    line_count += 1
+        return utility
 
     def getProbability(self, graph, dist, degree, utility, currState, nextState):
         """
@@ -106,7 +120,7 @@ class Agent1:
 
                             nextVal = min(nextVal, s * self.discount)
 
-                        if agent == pred:
+                        if agent == pred or abs(agent - pred) == 1:
                             reward = math.inf
                         elif agent == prey:
                             reward = 0
