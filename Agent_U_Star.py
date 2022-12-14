@@ -7,6 +7,7 @@ import graph as g
 import math
 import copy
 import json
+from numpy import Inf
 
 
 class Agent1:
@@ -14,9 +15,44 @@ class Agent1:
         self.generateGraph = GenerateGraph()
         self.discount = 0.75
         self.nonterminalReward = -0.001
-        self.error = 1e-22
+        self.error = 1e-15
 
         self.utility = None
+
+    def saveUtility(self, utility, dist):
+
+        with open("test_data.csv", "w") as f:
+            writer = csv.writer(f)
+
+            data = [
+                "agent",
+                "prey",
+                "pred",
+                "agentpreydist",
+                "agentpreddist",
+                "utility",
+            ]
+            writer.writerow(data)
+            n = len(utility)
+            for i in range(n):
+                for j in range(n):
+                    for k in range(n):
+
+                        val = utility[i][j][k]
+                        if val == math.inf:
+                            val = 100
+
+                        data = [
+                            i,
+                            j,
+                            k,
+                            dist[i][j],
+                            dist[i][k],
+                            val,
+                        ]
+
+                        writer.writerow(data)
+        return
 
     def getUtilityFromFile(self):
         utility = [[[-1 for i in range(50)] for j in range(50)] for k in range(50)]
@@ -174,11 +210,11 @@ class Agent1:
                 graph, dist, degree, agentPos, preyPos, predPos, size
             )
 
+            self.saveUtility(self.utility, dist)
+
             with open("test.txt", "w") as f:
 
                 f.write(json.dumps(self.utility))
-
-            print(self.utility)
 
         while runs > 0:
 

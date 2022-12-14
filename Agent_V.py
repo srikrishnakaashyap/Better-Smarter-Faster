@@ -20,7 +20,7 @@ class Agent1:
         self.utility = None
 
     def load_model(self):
-        f = open("model12.json")
+        f = open("model.json")
         self.model_map = json.loads(f.read())
         f.close()
 
@@ -48,16 +48,16 @@ class Agent1:
 
     def predictUtility(self, X):
         Z1, A1, Z2, A2, Z3, A3, Z4, A4, Z5, A5 = self.forward_prop(
-            np.asarray(self.model_map["W1_23000"]),
-            np.asarray(self.model_map["b1_23000"]),
-            np.asarray(self.model_map["W2_23000"]),
-            np.asarray(self.model_map["b2_23000"]),
-            np.asarray(self.model_map["W3_23000"]),
-            np.asarray(self.model_map["b3_23000"]),
-            np.asarray(self.model_map["W4_23000"]),
-            np.asarray(self.model_map["b4_23000"]),
-            np.asarray(self.model_map["W5_23000"]),
-            np.asarray(self.model_map["b5_23000"]),
+            np.asarray(self.model_map["W1_38600"]),
+            np.asarray(self.model_map["b1_38600"]),
+            np.asarray(self.model_map["W2_38600"]),
+            np.asarray(self.model_map["b2_38600"]),
+            np.asarray(self.model_map["W3_38600"]),
+            np.asarray(self.model_map["b3_38600"]),
+            np.asarray(self.model_map["W4_38600"]),
+            np.asarray(self.model_map["b4_38600"]),
+            np.asarray(self.model_map["W5_38600"]),
+            np.asarray(self.model_map["b5_38600"]),
             np.asarray(X).astype("int").T,
         )
 
