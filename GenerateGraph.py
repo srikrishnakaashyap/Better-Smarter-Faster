@@ -59,10 +59,14 @@ class GenerateGraph:
 if __name__ == "__main__":
     g = GenerateGraph()
 
-    graph, path, distance, degree = g.generateGraph(5)
+    graph, path, distance, degree = g.generateGraph(50)
 
     print(graph)
 
+    print("-----------------------------")
+
     print(distance)
+
+    print("-----------------------------")
 
     print(degree)

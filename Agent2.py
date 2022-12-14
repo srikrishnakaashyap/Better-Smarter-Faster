@@ -239,4 +239,4 @@ if __name__ == "__main__":
         result, steps = agent2.executeAgent(50)
         counter += result
         stepsArray.append(steps)
-    print(counter/30, stepsArray)
+    print(counter / 30, stepsArray)
