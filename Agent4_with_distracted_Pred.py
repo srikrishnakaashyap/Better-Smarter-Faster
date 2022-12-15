@@ -39,8 +39,7 @@ class Agent4:
 
                 deno = (neighbourPredDsitance + 0.1) ** 10
 
-                currheuristic += dist[n][i] * (1 - beliefArray[i])
-                # ) / neighbourPredDsitance
+                currheuristic += (dist[n][i] * (1 - beliefArray[i])) / deno
 
             heuristics[n] = currheuristic
 
@@ -65,6 +64,7 @@ class Agent4:
 
         if scoutNode == preyPos:
             nextTimeStepBeliefArray[scoutNode] = 1
+            self.numberOfSuccessfulScouts += 1
         else:
             nextTimeStepBeliefArray[scoutNode] = 0
             for i in range(len(nextTimeStepBeliefArray)):
@@ -96,17 +96,6 @@ class Agent4:
         maxiValue = max(self.beliefArray)
 
         for i, j in enumerate(self.beliefArray):
-            if j == maxiValue:
-                options.append(i)
-
-        if len(options) > 0:
-            return random.choice(options)
-
-    def predictPosForBeliefArray(self, beliefArray):
-        options = []
-        maxiValue = max(beliefArray)
-
-        for i, j in enumerate(beliefArray):
             if j == maxiValue:
                 options.append(i)
 
@@ -204,6 +193,8 @@ class Agent4:
     ):
         self.updateBeliefArray(agentPos, preyPos, predPos, graph, dist, degree)
         # print(self.beliefArray,"test init")
+
+        self.numberOfSuccessfulScouts = 0
         while runs > 0:
 
             if visualize:
@@ -226,40 +217,35 @@ class Agent4:
                 self.beliefArray, graph, degree, predictedPreyPosition
             )
 
-            nextTimeStepPredictedPrey = self.predictPosForBeliefArray(
-                nextTimeStepBeliefArray
-            )
+            print("SUM", sum(nextTimeStepBeliefArray))
 
-            # print("SUM", sum(nextTimeStepBeliefArray))
-
-            # nextPreyPositions = []
+            nextPreyPositions = []
             # for i, j in enumerate(nextTimeStepBeliefArray):
             #     if j != 0:
-            #         nextPreyPositions.append(i)
+            nextPreyPositions.append(predictedPreyPosition)
 
-            # heuristicMap = self.calculateHeuristic(
-            #     agentPos,
-            #     preyPos,
-            #     predPos,
-            #     nextPreyPositions,
-            #     dist,
-            #     nextTimeStepBeliefArray,
-            #     graph,
-            # )
-
-            # # move agent
-            # agentPos = sorted(heuristicMap.items(), key=lambda x: x[1])[0][0]
-
-            agentPos = self.moveAgent(
+            heuristicMap = self.calculateHeuristic(
                 agentPos,
-                nextTimeStepPredictedPrey,
                 preyPos,
                 predPos,
-                graph,
+                nextPreyPositions,
                 dist,
-                degree,
+                nextTimeStepBeliefArray,
+                graph,
             )
 
+            # move agent
+            agentPos = sorted(heuristicMap.items(), key=lambda x: x[1])[0][0]
+
+            # agentPos = self.moveAgent(
+            #     agentPos,
+            #     predictedPreyPosition,
+            #     preyPos,
+            #     predPos,
+            #     graph,
+            #     dist,
+            #     degree,
+            # )
             self.NormalizeBeliefArray(agentPos, preyPos, predPos, graph, dist, degree)
             print(
                 agentPos, preyPos, predPos, predictedPreyPosition, sum(self.beliefArray)
@@ -281,7 +267,7 @@ class Agent4:
                 return True, 2, 100 - runs, agentPos, predPos, preyPos
 
             # move predator
-            predPos = Utility.movePredatorWithoutPath(agentPos, predPos, graph, dist)
+            predPos = Utility.movePredator(agentPos, predPos, graph, dist)
 
             runs -= 1
 
@@ -299,6 +285,8 @@ class Agent4:
             agentPos = random.randint(0, size - 1)
             preyPos = random.randint(0, size - 1)
             predPos = random.randint(0, size - 1)
+            while predPos == agentPos:
+                predPos = random.randint(0, size - 1)
 
             self.beliefArray = [1 / (size) for i in range(size)]
             result, line, steps, agentPos, predPos, preyPos = self.agent3(
@@ -314,11 +302,23 @@ class Agent4:
 
 if __name__ == "__main__":
 
-    agent4 = Agent4()
+    agent1 = Agent4()
     counter = 0
     stepsArray = []
+    successArray = []
+    predCatch = []
+    successfulScouts = []
     for _ in range(30):
-        result, steps = agent4.executeAgent(50)
-        counter += result
+
+        result, steps = agent1.executeAgent(50)
+        successArray.append(result)
+        # counter += result
         stepsArray.append(steps)
-    print("SUCCESS RATE", counter / 30, stepsArray)
+        # predCatch.append(catches)
+        successfulScouts.append(agent1.numberOfSuccessfulScouts)
+        # print(catches)
+    print(sum(successArray) / 30)
+    # print(predCatch)
+    print(successArray)
+    print(stepsArray)
+    print(successfulScouts)
